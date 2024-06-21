@@ -1,5 +1,3 @@
-import AddExpenseModal from "@/components/AddExpenseModal";
-import TabBar from "@/components/navigation/TabBar";
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { Tabs } from "expo-router";
 import { useState } from "react";
@@ -17,11 +15,31 @@ export default function TabLayout() {
           headerShown: false,
         }}
         tabBar={(props) => (
-          <TabBar
-            {...props}
-            setModalVisible={setModalVisible}
-            modalVisible={modalVisible}
-          />
+          <View
+            style={{ flexDirection: "row", justifyContent: "space-around" }}
+          >
+            <TouchableOpacity
+              onPress={() => props.navigation.navigate("index")}
+            >
+              <TabBarIcon
+                name={
+                  props.state.index === 0 ? "hourglass" : "hourglass-outline"
+                }
+                color={props.state.index === 0 ? "#000000" : "#858585"}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => setModalVisible(true)}>
+              <TabBarIcon name="add" color="#000000" />
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => props.navigation.navigate("all")}>
+              <TabBarIcon
+                name={props.state.index === 1 ? "list" : "list-outline"}
+                color={props.state.index === 1 ? "#000000" : "#858585"}
+              />
+            </TouchableOpacity>
+          </View>
         )}
       >
         <Tabs.Screen
@@ -50,17 +68,7 @@ export default function TabLayout() {
             tabBarLabelStyle: { fontFamily: "Montserrat_500Medium" },
           }}
         />
-        <Tabs.Screen
-          name="transaction-details"
-          options={{
-            href: null,
-          }}
-        />
       </Tabs>
-      <AddExpenseModal
-        modalVisible={modalVisible}
-        setModalVisible={setModalVisible}
-      />
     </>
   );
 }

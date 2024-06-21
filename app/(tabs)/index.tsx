@@ -1,70 +1,270 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import AppText from "@/components/AppText";
+import Transaction from "@/components/Transaction";
+import { Colors, IconSizes } from "@/constants/constants";
+import { Ionicons } from "@expo/vector-icons";
+import { Link } from "expo-router";
+import { useContext } from "react";
+import {
+  FlatList,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { TransactionsContext } from "../context/transactionsContext";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+export default function RecentScreen() {
+  const { allTransactions } = useContext(TransactionsContext);
 
-export default function HomeScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View style={styles.headerBar}>
+            <View>
+              <AppText
+                style={{
+                  fontFamily: "Montserrat_400Regular",
+                  fontSize: 20,
+                }}
+              >
+                Good morning,
+              </AppText>
+              <AppText
+                style={{ fontFamily: "Montserrat_700Bold", fontSize: 25 }}
+              >
+                Darla
+              </AppText>
+            </View>
+            <View
+              style={{ flexDirection: "row", gap: 20, alignItems: "center" }}
+            >
+              <Image
+                source={require("../../assets/images/avatar.jpg")}
+                style={styles.avatarContainer}
+              />
+            </View>
+          </View>
+          <View style={styles.cardsContainer}>
+            <View style={styles.card}>
+              <Text
+                style={{
+                  fontSize: 30,
+                }}
+              >
+                💵
+              </Text>
+              <View>
+                <AppText style={styles.cardHeading}>Income</AppText>
+                <AppText
+                  style={[
+                    styles.cardAmount,
+                    {
+                      color: Colors.green,
+                    },
+                  ]}
+                >
+                  ₦
+                  {Object.values(allTransactions).reduce(
+                    (acc, curr) =>
+                      curr.type === "income" ? acc + curr.amount : acc,
+                    0
+                  )}
+                </AppText>
+              </View>
+            </View>
+
+            <View
+              style={{
+                width: 1,
+                backgroundColor: "#8f8f8f",
+              }}
+            />
+
+            <View style={styles.card}>
+              <Text
+                style={{
+                  fontSize: 30,
+                }}
+              >
+                💳
+              </Text>
+              <View>
+                <AppText style={styles.cardHeading}>Expenses</AppText>
+                <AppText
+                  style={[
+                    styles.cardAmount,
+                    {
+                      color: Colors.red,
+                    },
+                  ]}
+                >
+                  ₦
+                  {Object.values(allTransactions).reduce(
+                    (acc, curr) =>
+                      curr.type === "expense" ? acc + curr.amount : acc,
+                    0
+                  )}
+                </AppText>
+              </View>
+            </View>
+          </View>
+        </View>
+        <View style={{ flex: 1, marginHorizontal: 20 }}>
+          <View
+            style={{
+              marginTop: 25,
+              marginBottom: 15,
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <AppText
+              style={{
+                fontFamily: "Montserrat_500Medium",
+                color: "black",
+                fontSize: 15,
+              }}
+            >
+              Last 7 days
+            </AppText>
+            <Link href="/all">
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 5,
+                }}
+              >
+                <AppText
+                  style={{
+                    color: "black",
+                    fontFamily: "Montserrat_700Bold",
+                    fontSize: 15,
+                  }}
+                >
+                  See all
+                </AppText>
+                <Ionicons
+                  name="arrow-forward"
+                  size={IconSizes.small}
+                  color="black"
+                />
+              </View>
+            </Link>
+          </View>
+          <FlatList
+            data={Object.values(allTransactions)}
+            renderItem={({ item }) => (
+              <Transaction
+                id={item.id}
+                category={item.category}
+                name={item.name}
+                amount={item.amount}
+                date={item.date}
+                type={item.type}
+              />
+            )}
+            keyExtractor={(item, index) => index.toString()}
+            ItemSeparatorComponent={() => (
+              <View style={{ height: 1, backgroundColor: Colors.lightGray }} />
+            )}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={() => (
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  marginTop: 50,
+                }}
+              >
+                <AppText
+                  style={{
+                    color: Colors.grayText,
+                  }}
+                >
+                  No recent transactions
+                </AppText>
+              </View>
+            )}
+          />
+        </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  header: {
+    padding: 20,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  headerBar: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  avatarContainer: {
+    backgroundColor: Colors.mainColor,
+    width: 45,
+    height: 45,
+    borderRadius: 20,
+  },
+  cardsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 20,
+    borderRadius: 20,
+    backgroundColor: "white",
+    padding: 10,
+    shadowColor: "#8f8f8f",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    elevation: 4,
+  },
+  card: {
+    width: "45%",
+    // borderColor: "red",
+    // borderWidth: 1,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+    // paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  cardHeading: {
+    fontSize: 13,
+    fontWeight: "200",
+  },
+  cardAmount: {
+    color: "black",
+    fontSize: 20,
+    fontFamily: "Montserrat_600SemiBold",
+    marginTop: 5,
+  },
+
+  smallText: {
+    color: Colors.lightGray,
+    fontSize: 12,
+    fontWeight: "200",
+  },
+  transactionsContainer: {
+    flexGrow: 1,
+    backgroundColor: Colors.lightGray,
+    shadowColor: "#8f8f8f",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    elevation: 4,
   },
 });
