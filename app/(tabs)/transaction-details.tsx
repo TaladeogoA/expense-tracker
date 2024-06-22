@@ -22,14 +22,21 @@ import { ExpenseCategories, TransactionDetailsType } from "@/constants/types";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import "react-native-get-random-values";
 import { v4 as uuidv4 } from "uuid";
+import AppInput from "@/components/AppInput";
+import { drop } from "lodash";
 
 const TransactionDetails = () => {
-  const { idToEdit, mode, editTransaction, addTransaction, allTransactions } =
-    useContext(TransactionsContext);
+  const {
+    idToEdit,
+    setIdToEdit,
+    mode,
+    editTransaction,
+    addTransaction,
+    allTransactions,
+  } = useContext(TransactionsContext);
   let selectedTransaction: TransactionDetailsType | null =
     allTransactions[idToEdit];
-
-  const [inputCategory, setInputCategory] = useState<ExpenseCategories>("food");
+  const [inputCategory, setInputCategory] = useState<ExpenseCategories>("");
   const [inputName, setInputName] = useState("");
   const [inputAmount, setInputAmount] = useState("");
   const [inputType, setInputType] = useState<"expense" | "income">("expense");
@@ -49,12 +56,12 @@ const TransactionDetails = () => {
   }, [selectedTransaction]);
 
   const resetForm = () => {
-    setInputCategory("food");
+    setIdToEdit("");
+    setInputCategory("");
     setInputName("");
     setInputAmount("");
     setInputType("expense");
     setInputDate("");
-    selectedTransaction = null;
   };
 
   const handleSave = () => {
@@ -62,7 +69,7 @@ const TransactionDetails = () => {
       id: mode === "edit" ? idToEdit : uuidv4(),
       category: inputCategory,
       name: inputName,
-      amount: Number(inputAmount),
+      amount: Number(inputAmount.replace(/,/g, "")),
       date: inputDate,
       type: inputType,
     };
@@ -157,17 +164,18 @@ const TransactionDetails = () => {
               </AppText>
             </TouchableOpacity>
           </View>
-          <TextInput
-            placeholder="Name"
-            style={styles.textInput}
+          <AppInput
+            label="Name"
+            placeholder="e.g., Groceries, Salary"
             value={inputName}
             onChangeText={setInputName}
           />
-          <TextInput
-            placeholder="Amount"
-            style={styles.textInput}
+          <AppInput
+            label="Amount"
+            placeholder="e.g., 0.00"
             value={inputAmount}
             onChangeText={setInputAmount}
+            keyboardType="numeric"
           />
           <TouchableOpacity
             onPress={() => setShow(true)}
@@ -176,9 +184,22 @@ const TransactionDetails = () => {
               {
                 paddingVertical: 20,
               },
+              show ? { borderColor: "black" } : { borderColor: "grey" },
             ]}
           >
-            <AppText>{inputDate ? inputDate : "Select Date"}</AppText>
+            <AppText
+              style={
+                inputDate
+                  ? {
+                      color: "black",
+
+                      fontSize: FontSizes.medium,
+                    }
+                  : { color: "grey" }
+              }
+            >
+              {inputDate ? inputDate : "e.g., YYYY-MM-DD"}
+            </AppText>
           </TouchableOpacity>
           {show && (
             <DateTimePicker
@@ -195,12 +216,21 @@ const TransactionDetails = () => {
           )}
           <Dropdown
             style={styles.dropdown}
+            placeholderStyle={[
+              styles.dropdownText,
+              {
+                color: "grey",
+                fontSize: 14,
+              },
+            ]}
+            selectedTextStyle={styles.dropdownText}
+            itemTextStyle={styles.dropdownText}
+            placeholder="e.g., Food, Rent, Salary"
             data={dropDownCategories}
             search
             maxHeight={300}
             labelField="label"
             valueField="value"
-            placeholder="Select item"
             searchPlaceholder="Search..."
             value={inputCategory}
             onChange={(item) => {
@@ -232,9 +262,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
     flex: 1,
   },
+
   typesContainer: {
     flexDirection: "row",
-    marginBottom: 10,
+    marginVertical: 10,
   },
   typeButton: {
     paddingHorizontal: 20,
@@ -245,7 +276,7 @@ const styles = StyleSheet.create({
   },
   typeText: {
     textAlign: "center",
-    fontSize: 16,
+    fontSize: FontSizes.medium,
   },
   activeType: {
     backgroundColor: "black",
@@ -258,7 +289,6 @@ const styles = StyleSheet.create({
     padding: 15,
     width: "100%",
     marginVertical: 10,
-    fontSize: 16,
   },
   dropdown: {
     borderWidth: 1,
@@ -268,6 +298,10 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     width: "100%",
     marginVertical: 10,
+  },
+  dropdownText: {
+    fontSize: 16,
+    fontFamily: "Montserrat_400Regular",
   },
   submitButton: {
     backgroundColor: "black",

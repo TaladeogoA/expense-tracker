@@ -12,13 +12,21 @@ import {
   TransactionDetailsType,
   TransactionType,
 } from "@/constants/types";
-import { Colors } from "@/constants/constants";
+import { Colors, IconSizes } from "@/constants/constants";
 import AppText from "./AppText";
 import { Link, router } from "expo-router";
 import { TransactionsContext } from "@/app/context/transactionsContext";
+import {
+  Menu,
+  MenuOption,
+  MenuOptions,
+  MenuTrigger,
+} from "react-native-popup-menu";
+import { Ionicons } from "@expo/vector-icons";
+import { formatter } from "@/constants/utils";
 
 const screenWidth = Dimensions.get("window").width;
-const maxChars = Math.floor(screenWidth / 20);
+const maxChars = Math.floor(screenWidth / 23);
 
 const Transaction: FC<TransactionDetailsType> = ({
   id,
@@ -28,7 +36,8 @@ const Transaction: FC<TransactionDetailsType> = ({
   date,
   type,
 }) => {
-  const { setIdToEdit, setMode } = useContext(TransactionsContext);
+  const { setIdToEdit, setMode, deleteTransaction } =
+    useContext(TransactionsContext);
 
   const handleTransactionPress = () => {
     setIdToEdit(id);
@@ -36,18 +45,26 @@ const Transaction: FC<TransactionDetailsType> = ({
     router.push("/transaction-details");
   };
 
+  const handleDelete = () => {
+    deleteTransaction(id);
+  };
+
   const displayText =
     name.length > maxChars ? `${name.slice(0, maxChars)}...` : name;
+
   return (
-    <TouchableOpacity style={styles.container} onPress={handleTransactionPress}>
-      <View style={styles.emojiContainer}>
-        <TransactionIcon category={category} />
-      </View>
-      <View style={styles.detailsText}>
-        <Text style={styles.nameText}>{displayText}</Text>
-        <AppText style={styles.dateText}>{date}</AppText>
-      </View>
-      <View style={styles.amountContainer}>
+    <View style={styles.container}>
+      <TouchableOpacity
+        onPress={handleTransactionPress}
+        style={styles.transactionInfo}
+      >
+        <View style={styles.emojiContainer}>
+          <TransactionIcon category={category} />
+        </View>
+        <View style={styles.detailsText}>
+          <Text style={styles.nameText}>{displayText}</Text>
+          <AppText style={styles.dateText}>{date}</AppText>
+        </View>
         <AppText
           style={[
             styles.amountText,
@@ -56,11 +73,30 @@ const Transaction: FC<TransactionDetailsType> = ({
             },
           ]}
         >
-          {type === "expense" ? "-₦" : "+₦"}
-          {amount}
+          {formatter.format(amount)}
         </AppText>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+      <Menu style={{ padding: 10 }}>
+        <MenuTrigger>
+          <Ionicons
+            name="ellipsis-vertical"
+            size={IconSizes.small}
+            color="black"
+          />
+        </MenuTrigger>
+        <MenuOptions>
+          <MenuOption onSelect={handleTransactionPress}>
+            <Text style={styles.menuText}>View</Text>
+          </MenuOption>
+          <MenuOption onSelect={handleTransactionPress}>
+            <Text style={styles.menuText}>Edit</Text>
+          </MenuOption>
+          <MenuOption onSelect={handleDelete}>
+            <Text style={styles.menuText}>Delete</Text>
+          </MenuOption>
+        </MenuOptions>
+      </Menu>
+    </View>
   );
 };
 
@@ -71,20 +107,27 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     flexDirection: "row",
     backgroundColor: "white",
+    alignItems: "center",
+  },
+  transactionInfo: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
   },
   emojiContainer: {
-    padding: 12,
+    padding: 6,
     borderRadius: 8,
     backgroundColor: Colors.transparentGreen,
     justifyContent: "center",
     alignItems: "center",
   },
   detailsText: {
-    marginLeft: 20,
+    marginLeft: 10,
     gap: 5,
+    flex: 3,
   },
   nameText: {
-    fontSize: 17,
+    fontSize: 16,
     fontFamily: "Montserrat_600SemiBold",
   },
   dateText: {
@@ -94,11 +137,14 @@ const styles = StyleSheet.create({
   amountContainer: {
     flex: 1,
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-end",
   },
   amountText: {
     fontSize: 16,
     fontWeight: "600",
+    marginHorizontal: 10,
+  },
+  menuText: {
+    // fontSize: 16,
+    // padding: 10,
   },
 });

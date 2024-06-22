@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TransactionsContext } from "../context/transactionsContext";
+import { formatter } from "@/constants/utils";
 
 export default function RecentScreen() {
   const { allTransactions } = useContext(TransactionsContext);
@@ -56,7 +57,12 @@ export default function RecentScreen() {
               >
                 💵
               </Text>
-              <View>
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                }}
+              >
                 <AppText style={styles.cardHeading}>Income</AppText>
                 <AppText
                   style={[
@@ -66,11 +72,12 @@ export default function RecentScreen() {
                     },
                   ]}
                 >
-                  ₦
-                  {Object.values(allTransactions).reduce(
-                    (acc, curr) =>
-                      curr.type === "income" ? acc + curr.amount : acc,
-                    0
+                  {formatter.format(
+                    Object.values(allTransactions).reduce(
+                      (acc, curr) =>
+                        curr.type === "income" ? acc + curr.amount : acc,
+                      0
+                    )
                   )}
                 </AppText>
               </View>
@@ -91,7 +98,12 @@ export default function RecentScreen() {
               >
                 💳
               </Text>
-              <View>
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                }}
+              >
                 <AppText style={styles.cardHeading}>Expenses</AppText>
                 <AppText
                   style={[
@@ -101,11 +113,12 @@ export default function RecentScreen() {
                     },
                   ]}
                 >
-                  ₦
-                  {Object.values(allTransactions).reduce(
-                    (acc, curr) =>
-                      curr.type === "expense" ? acc + curr.amount : acc,
-                    0
+                  {formatter.format(
+                    Object.values(allTransactions).reduce(
+                      (acc, curr) =>
+                        curr.type === "expense" ? acc + curr.amount : acc,
+                      0
+                    )
                   )}
                 </AppText>
               </View>
@@ -232,12 +245,9 @@ const styles = StyleSheet.create({
   },
   card: {
     width: "45%",
-    // borderColor: "red",
-    // borderWidth: 1,
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 10,
-    // paddingHorizontal: 20,
     paddingVertical: 10,
   },
   cardHeading: {
@@ -249,6 +259,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: "Montserrat_600SemiBold",
     marginTop: 5,
+    flexWrap: "wrap",
   },
 
   smallText: {

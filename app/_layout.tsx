@@ -14,6 +14,7 @@ import {
 import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import { MenuProvider } from "react-native-popup-menu";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 export default function RootLayout() {
@@ -42,22 +43,24 @@ export default function RootLayout() {
   return (
     <>
       <StatusBar style="dark" />
-      <TransactionsProvider>
-        <SafeAreaProvider>
-          <Stack
-            screenOptions={{
-              contentStyle: { backgroundColor: "white" },
-            }}
-          >
-            <Stack.Screen
-              name="(tabs)"
-              options={{
-                headerShown: false,
+      <MenuProvider>
+        <TransactionsProvider>
+          <SafeAreaProvider>
+            <Stack
+              screenOptions={{
+                contentStyle: { backgroundColor: "white" },
               }}
-            />
-          </Stack>
-        </SafeAreaProvider>
-      </TransactionsProvider>
+            >
+              <Stack.Screen
+                name="(tabs)"
+                options={{
+                  headerShown: false,
+                }}
+              />
+            </Stack>
+          </SafeAreaProvider>
+        </TransactionsProvider>
+      </MenuProvider>
     </>
   );
 }
