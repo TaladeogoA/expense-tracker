@@ -1,6 +1,6 @@
 import AppText from "@/components/AppText";
 import Transaction from "@/components/Transaction";
-import { Colors, FontSizes, IconSizes } from "@/constants/constants";
+import { Colors, FontSizes, IconSizes } from "@/utils/constants";
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import React, { useContext } from "react";

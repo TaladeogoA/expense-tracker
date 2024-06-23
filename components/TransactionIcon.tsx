@@ -1,5 +1,5 @@
 import { View, Text } from "react-native";
-import { ExpenseCategories } from "@/constants/types";
+import { ExpenseCategories } from "@/utils/types";
 
 interface TransactionIconProps {
   category: ExpenseCategories;

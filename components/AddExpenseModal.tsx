@@ -9,7 +9,7 @@ import AppText from "./AppText";
 import { Entypo, Ionicons } from "@expo/vector-icons";
 import { Dropdown } from "react-native-element-dropdown";
 import { useState } from "react";
-import { IconSizes } from "@/constants/constants";
+import { IconSizes } from "@/utils/constants";
 
 const categoriesData = [
   {

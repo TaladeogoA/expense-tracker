@@ -4,7 +4,7 @@ import {
   FontSizes,
   IconSizes,
   dropDownCategories,
-} from "@/constants/constants";
+} from "@/utils/constants";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useContext, useEffect, useState } from "react";
@@ -23,12 +23,12 @@ import {
   ExpenseCategories,
   TransactionDetailsType,
   TransactionType,
-} from "@/constants/types";
+} from "@/utils/types";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import "react-native-get-random-values";
 import { v4 as uuidv4 } from "uuid";
 import AppInput from "@/components/AppInput";
-import { validate } from "@/constants/utils";
+import { validate } from "@/utils/utils";
 
 const TRANSACTION_TYPE = {
   EXPENSE: "expense",

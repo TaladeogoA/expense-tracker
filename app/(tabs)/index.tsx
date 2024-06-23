@@ -1,6 +1,6 @@
 import AppText from "@/components/AppText";
 import Transaction from "@/components/Transaction";
-import { Colors, IconSizes } from "@/constants/constants";
+import { Colors, IconSizes } from "@/utils/constants";
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import { useContext } from "react";
@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TransactionsContext } from "../context/transactionsContext";
-import { formatter } from "@/constants/utils";
+import { formatter } from "@/utils/utils";
 
 export default function RecentScreen() {
   const { allTransactions } = useContext(TransactionsContext);

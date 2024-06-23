@@ -1,4 +1,4 @@
-import { AllTransactionsType, TransactionDetailsType } from "@/constants/types";
+import { AllTransactionsType, TransactionDetailsType } from "@/utils/types";
 import { createContext, useReducer } from "react";
 import { isEqual } from "lodash";
 

@@ -2,7 +2,7 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { TabBarIcon } from "./TabBarIcon";
 import { FC, useContext } from "react";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { Colors } from "@/constants/constants";
+import { Colors } from "@/utils/constants";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { TransactionsContext } from "@/app/context/transactionsContext";

@@ -11,8 +11,8 @@ import {
   ExpenseCategories,
   TransactionDetailsType,
   TransactionType,
-} from "@/constants/types";
-import { Colors, IconSizes } from "@/constants/constants";
+} from "@/utils/types";
+import { Colors, IconSizes } from "@/utils/constants";
 import AppText from "./AppText";
 import { Link, router } from "expo-router";
 import { TransactionsContext } from "@/app/context/transactionsContext";
@@ -23,7 +23,7 @@ import {
   MenuTrigger,
 } from "react-native-popup-menu";
 import { Ionicons } from "@expo/vector-icons";
-import { formatter } from "@/constants/utils";
+import { formatter } from "@/utils/utils";
 
 const screenWidth = Dimensions.get("window").width;
 const maxChars = Math.floor(screenWidth / 23);
