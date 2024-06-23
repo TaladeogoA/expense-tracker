@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { TextInput, View, StyleSheet, TextInputProps } from "react-native";
 import AppText from "./AppText";
-import { FontSizes } from "@/constants/constants";
+import { Colors, FontSizes } from "@/constants/constants";
 
 interface InputProps extends TextInputProps {
   label: string;
@@ -14,6 +14,7 @@ interface InputProps extends TextInputProps {
     | "numeric"
     | "email-address"
     | "phone-pad";
+  isValid?: boolean;
 }
 
 const AppInput: React.FC<InputProps> = ({
@@ -21,6 +22,7 @@ const AppInput: React.FC<InputProps> = ({
   value,
   onChangeText,
   keyboardType = "default",
+  isValid = true,
   ...props
 }) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -30,11 +32,24 @@ const AppInput: React.FC<InputProps> = ({
 
   return (
     <View style={styles.container}>
-      <AppText style={styles.label}>{label}</AppText>
+      <AppText
+        style={[
+          styles.label,
+          !isValid
+            ? {
+                color: Colors.red,
+                fontFamily: "Montserrat_600SemiBold",
+              }
+            : {},
+        ]}
+      >
+        {label}
+      </AppText>
       <TextInput
         style={[
           styles.input,
           isFocused ? styles.focusedInput : {},
+          !isValid ? styles.invalidInput : {},
           value === ""
             ? {
                 fontSize: FontSizes.small,
@@ -60,6 +75,7 @@ const styles = StyleSheet.create({
   },
   label: {
     marginBottom: 10,
+    fontFamily: "Montserrat_500Medium",
   },
   input: {
     borderWidth: 1,
@@ -72,6 +88,9 @@ const styles = StyleSheet.create({
   },
   focusedInput: {
     borderColor: "black",
+  },
+  invalidInput: {
+    borderColor: Colors.red,
   },
 });
 

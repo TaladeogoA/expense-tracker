@@ -21,6 +21,6 @@ export type TransactionDetailsType = {
   category: ExpenseCategories;
   name: string;
   amount: number;
-  date: string;
+  date: Date;
   type: TransactionType;
 };

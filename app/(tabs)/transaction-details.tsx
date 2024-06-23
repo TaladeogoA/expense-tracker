@@ -1,12 +1,13 @@
 import AppText from "@/components/AppText";
 import {
+  Colors,
   FontSizes,
   IconSizes,
   dropDownCategories,
 } from "@/constants/constants";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import {
   BackHandler,
   SafeAreaView,
@@ -18,12 +19,21 @@ import {
 } from "react-native";
 import { Dropdown } from "react-native-element-dropdown";
 import { TransactionsContext } from "../context/transactionsContext";
-import { ExpenseCategories, TransactionDetailsType } from "@/constants/types";
+import {
+  ExpenseCategories,
+  TransactionDetailsType,
+  TransactionType,
+} from "@/constants/types";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import "react-native-get-random-values";
 import { v4 as uuidv4 } from "uuid";
 import AppInput from "@/components/AppInput";
-import { drop } from "lodash";
+import { validate } from "@/constants/utils";
+
+const TRANSACTION_TYPE = {
+  EXPENSE: "expense",
+  INCOME: "income",
+};
 
 const TransactionDetails = () => {
   const {
@@ -36,47 +46,83 @@ const TransactionDetails = () => {
   } = useContext(TransactionsContext);
   let selectedTransaction: TransactionDetailsType | null =
     allTransactions[idToEdit];
-  const [inputCategory, setInputCategory] = useState<ExpenseCategories>("");
-  const [inputName, setInputName] = useState("");
-  const [inputAmount, setInputAmount] = useState("");
-  const [inputType, setInputType] = useState<"expense" | "income">("expense");
-  const [inputDate, setInputDate] = useState("");
+
+  const defaultTransaction = {
+    category: { value: "", isValid: true },
+    name: { value: "", isValid: true },
+    amount: { value: "", isValid: true },
+    type: { value: "expense", isValid: true },
+    date: { value: new Date(), isValid: true },
+  };
+
+  const [transaction, setTransaction] = useState(defaultTransaction);
+
   const [show, setShow] = useState(false);
 
   useEffect(() => {
     if (selectedTransaction) {
-      setInputCategory(selectedTransaction.category);
-      setInputName(selectedTransaction.name || "");
-      setInputAmount(
-        selectedTransaction.amount ? selectedTransaction.amount.toString() : ""
-      );
-      setInputType(selectedTransaction.type || "expense");
-      setInputDate(selectedTransaction.date || "");
+      setTransaction({
+        category: { value: selectedTransaction.category, isValid: true },
+        name: { value: selectedTransaction.name, isValid: true },
+        amount: {
+          value: selectedTransaction.amount.toString(),
+          isValid: true,
+        },
+        type: { value: selectedTransaction.type, isValid: true },
+        date: { value: selectedTransaction.date, isValid: true },
+      });
     }
   }, [selectedTransaction]);
 
-  const resetForm = () => {
+  const handleInputChange = useCallback(
+    (
+      field: keyof TransactionDetailsType,
+      value: string | number | ExpenseCategories | TransactionType | Date
+    ) => {
+      setTransaction((prev) => ({
+        ...prev,
+        [field]: { value, isValid: validate(field, value) },
+      }));
+    },
+    []
+  );
+
+  const resetForm = useCallback(() => {
     setIdToEdit("");
-    setInputCategory("");
-    setInputName("");
-    setInputAmount("");
-    setInputType("expense");
-    setInputDate("");
-  };
+    setTransaction(defaultTransaction);
+  }, []);
 
   const handleSave = () => {
-    const transaction = {
+    const newTransaction = {
       id: mode === "edit" ? idToEdit : uuidv4(),
-      category: inputCategory,
-      name: inputName,
-      amount: Number(inputAmount.replace(/,/g, "")),
-      date: inputDate,
-      type: inputType,
+      category: transaction.category.value as ExpenseCategories,
+      name: transaction.name.value,
+      amount: Number(transaction.amount.value.replace(/,/g, "")),
+      date: transaction.date.value,
+      type: transaction.type.value as TransactionType,
     };
+
+    const amountIsValid =
+      newTransaction.amount > 0 && !isNaN(newTransaction.amount);
+    const nameIsValid = newTransaction.name.trim().length > 0;
+    const dateIsValid = newTransaction.date instanceof Date;
+    const categoryIsValid = newTransaction.category.trim().length > 0;
+
+    if (!amountIsValid || !nameIsValid || !dateIsValid || !categoryIsValid) {
+      setTransaction((prev) => ({
+        ...prev,
+        amount: { ...prev.amount, isValid: amountIsValid },
+        name: { ...prev.name, isValid: nameIsValid },
+        date: { ...prev.date, isValid: dateIsValid },
+        category: { ...prev.category, isValid: categoryIsValid },
+      }));
+      return;
+    }
+
     if (mode === "edit") {
-      editTransaction(transaction);
+      editTransaction(newTransaction);
     } else {
-      addTransaction(transaction);
+      addTransaction(newTransaction);
     }
     resetForm();
 
@@ -124,18 +170,27 @@ const TransactionDetails = () => {
             <TouchableOpacity
               style={[
                 styles.typeButton,
-                inputType === "expense" ? styles.activeType : {},
+                transaction.type.value === TRANSACTION_TYPE.EXPENSE
+                  ? styles.activeType
+                  : {},
                 {
                   borderTopLeftRadius: 10,
                   borderBottomLeftRadius: 10,
                 },
               ]}
-              onPress={() => setInputType("expense")}
+              onPress={() =>
+                handleInputChange("type", TRANSACTION_TYPE.EXPENSE)
+              }
             >
               <AppText
                 style={[
                   styles.typeText,
-                  { color: inputType === "expense" ? "white" : "black" },
+                  {
+                    color:
+                      transaction.type.value === TRANSACTION_TYPE.EXPENSE
+                        ? "white"
+                        : "black",
+                  },
                 ]}
               >
                 Expense
@@ -144,19 +199,24 @@ const TransactionDetails = () => {
             <TouchableOpacity
               style={[
                 styles.typeButton,
-                inputType === "income" ? styles.activeType : {},
+                transaction.type.value === TRANSACTION_TYPE.INCOME
+                  ? styles.activeType
+                  : {},
                 {
                   borderTopRightRadius: 10,
                   borderBottomRightRadius: 10,
                 },
               ]}
-              onPress={() => setInputType("income")}
+              onPress={() => handleInputChange("type", TRANSACTION_TYPE.INCOME)}
             >
               <AppText
                 style={[
                   styles.typeText,
                   {
-                    color: inputType === "expense" ? "black" : "white",
+                    color:
+                      transaction.type.value === TRANSACTION_TYPE.EXPENSE
+                        ? "black"
+                        : "white",
                   },
                 ]}
               >
@@ -167,79 +227,116 @@ const TransactionDetails = () => {
           <AppInput
             label="Name"
             placeholder="e.g., Groceries, Salary"
-            value={inputName}
-            onChangeText={setInputName}
+            value={transaction.name.value}
+            onChangeText={(value) => handleInputChange("name", value)}
+            isValid={transaction.name.isValid}
           />
+
           <AppInput
             label="Amount"
             placeholder="e.g., 0.00"
-            value={inputAmount}
-            onChangeText={setInputAmount}
+            value={transaction.amount.value}
+            onChangeText={(value) => handleInputChange("amount", value)}
             keyboardType="numeric"
+            isValid={transaction.amount.isValid}
           />
-          <TouchableOpacity
-            onPress={() => setShow(true)}
-            style={[
-              styles.textInput,
-              {
-                paddingVertical: 20,
-              },
-              show ? { borderColor: "black" } : { borderColor: "grey" },
-            ]}
-          >
+          <View>
             <AppText
-              style={
-                inputDate
-                  ? {
-                      color: "black",
-
-                      fontSize: FontSizes.medium,
-                    }
-                  : { color: "grey" }
-              }
+              style={[
+                styles.label,
+                transaction.date.isValid
+                  ? {}
+                  : { color: Colors.red, fontFamily: "Montserrat_600SemiBold" },
+              ]}
             >
-              {inputDate ? inputDate : "e.g., YYYY-MM-DD"}
+              Date
             </AppText>
-          </TouchableOpacity>
-          {show && (
-            <DateTimePicker
-              testID="dateTimePicker"
-              value={new Date()}
-              mode="date"
-              display="default"
-              onChange={(event, selectedDate) => {
-                const currentDate = selectedDate || new Date();
-                setInputDate(currentDate.toDateString());
-                setShow(false);
+            <TouchableOpacity
+              onPress={() => setShow(true)}
+              style={[
+                styles.textInput,
+                {
+                  paddingVertical: 20,
+                },
+                show ? { borderColor: "black" } : { borderColor: "grey" },
+                transaction.date.isValid ? {} : { borderColor: "red" },
+              ]}
+            >
+              <AppText
+                style={
+                  transaction.date
+                    ? {
+                        color: "black",
+                        fontSize: FontSizes.medium,
+                      }
+                    : { color: "grey" }
+                }
+              >
+                {transaction.date
+                  ? transaction.date.value.toDateString()
+                  : "e.g., YYYY-MM-DD"}
+              </AppText>
+            </TouchableOpacity>
+            {show && (
+              <DateTimePicker
+                testID="dateTimePicker"
+                value={new Date()}
+                mode="date"
+                display="default"
+                onChange={(event, selectedDate) => {
+                  const currentDate = selectedDate || new Date();
+                  handleInputChange("date", currentDate);
+                  setShow(false);
+                }}
+              />
+            )}
+          </View>
+
+          <View>
+            <AppText
+              style={[
+                styles.label,
+                transaction.category.isValid
+                  ? {}
+                  : { color: Colors.red, fontFamily: "Montserrat_600SemiBold" },
+              ]}
+            >
+              Category
+            </AppText>
+            <Dropdown
+              style={[
+                styles.dropdown,
+                {
+                  borderColor: transaction.category.isValid
+                    ? "grey"
+                    : Colors.red,
+                },
+              ]}
+              placeholderStyle={[
+                styles.dropdownText,
+                {
+                  color: "grey",
+                  fontSize: 14,
+                },
+              ]}
+              selectedTextStyle={styles.dropdownText}
+              itemTextStyle={styles.dropdownText}
+              placeholder="e.g., Food, Rent, Salary"
+              data={dropDownCategories}
+              search
+              maxHeight={300}
+              labelField="label"
+              valueField="value"
+              searchPlaceholder="Search..."
+              value={transaction.category.value}
+              onChange={(item) => {
+                handleInputChange("category", item.value);
               }}
             />
-          )}
-          <Dropdown
-            style={styles.dropdown}
-            placeholderStyle={[
-              styles.dropdownText,
-              {
-                color: "grey",
-                fontSize: 14,
-              },
-            ]}
-            selectedTextStyle={styles.dropdownText}
-            itemTextStyle={styles.dropdownText}
-            placeholder="e.g., Food, Rent, Salary"
-            data={dropDownCategories}
-            search
-            maxHeight={300}
-            labelField="label"
-            valueField="value"
-            searchPlaceholder="Search..."
-            value={inputCategory}
-            onChange={(item) => {
-              // @ts-ignore
-              setInputCategory(item.value);
-            }}
-          />
+          </View>
+
           <TouchableOpacity style={styles.submitButton} onPress={handleSave}>
-            <AppText style={{ color: "white", fontSize: 16 }}>Save</AppText>
+            <AppText style={styles.submitButtonText}>Save</AppText>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -290,6 +387,9 @@ const styles = StyleSheet.create({
     width: "100%",
     marginVertical: 10,
   },
+  label: {
+    fontFamily: "Montserrat_500Medium",
+  },
   dropdown: {
     borderWidth: 1,
     borderColor: "grey",
@@ -310,5 +410,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginTop: 10,
+  },
+  submitButtonText: {
+    color: "white",
+    fontSize: 16,
   },
 });

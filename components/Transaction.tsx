@@ -63,7 +63,7 @@ const Transaction: FC<TransactionDetailsType> = ({
         </View>
         <View style={styles.detailsText}>
           <Text style={styles.nameText}>{displayText}</Text>
-          <AppText style={styles.dateText}>{date}</AppText>
+          <AppText style={styles.dateText}>{date.toDateString()}</AppText>
         </View>
         <AppText
           style={[
