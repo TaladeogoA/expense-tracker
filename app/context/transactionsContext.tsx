@@ -1,10 +1,10 @@
 import { AllTransactionsType, TransactionDetailsType } from "@/utils/types";
 import { createContext, useReducer } from "react";
-import { isEqual } from "lodash";
 
 export const TransactionsContext = createContext<TransactionsContextType>({
   idToEdit: "",
   setIdToEdit: () => {},
+  setTransactions: () => {},
   allTransactions: {},
   addTransaction: () => {},
   deleteTransaction: () => {},
@@ -20,7 +20,7 @@ const TransactionsReducer = (state: State, action: Action) => {
         ...state,
         allTransactions: {
           ...state.allTransactions,
-          [action.payload.id]: action.payload,
+          [action.payload.id]: action.payload.transaction,
         },
       };
     case "DELETE_TRANSACTION":
@@ -31,18 +31,19 @@ const TransactionsReducer = (state: State, action: Action) => {
         allTransactions: newTransactions,
       };
     case "EDIT_TRANSACTION":
-      const oldTransaction = state.allTransactions[action.payload.id];
-      if (oldTransaction && isEqual(oldTransaction, action.payload)) {
-        return state;
-      } else {
-        return {
-          ...state,
-          allTransactions: {
-            ...state.allTransactions,
-            [action.payload.id]: action.payload,
-          },
-        };
-      }
+      return {
+        ...state,
+        allTransactions: {
+          ...state.allTransactions,
+          [action.payload.id]: action.payload.transaction,
+        },
+      };
+    case "SET_TRANSACTIONS":
+      return {
+        ...state,
+        allTransactions: action.payload,
+      };
+
     case "SET_MODE":
       return {
         ...state,
@@ -69,16 +70,20 @@ const TransactionsProvider = ({ children }: { children: React.ReactNode }) => {
     dispatch({ type: "SET_TO_EDIT", payload: transactionId });
   };
 
-  const addTransaction = (transaction: TransactionDetailsType) => {
-    dispatch({ type: "ADD_TRANSACTION", payload: transaction });
+  const addTransaction = (id: string, transaction: TransactionDetailsType) => {
+    dispatch({ type: "ADD_TRANSACTION", payload: { id, transaction } });
+  };
+
+  const editTransaction = (id: string, transaction: TransactionDetailsType) => {
+    dispatch({ type: "EDIT_TRANSACTION", payload: { id, transaction } });
+  };
+
+  const setTransactions = (transactions: AllTransactionsType) => {
+    dispatch({ type: "SET_TRANSACTIONS", payload: transactions });
   };
 
   const deleteTransaction = (transactionId: string) => {
     dispatch({ type: "DELETE_TRANSACTION", payload: transactionId });
-  };
-
-  const editTransaction = (transaction: TransactionDetailsType) => {
-    dispatch({ type: "EDIT_TRANSACTION", payload: transaction });
   };
 
   const setMode = (mode: "edit" | "add") => {
@@ -90,6 +95,7 @@ const TransactionsProvider = ({ children }: { children: React.ReactNode }) => {
     setIdToEdit,
     allTransactions: transactionState.allTransactions,
     addTransaction,
+    setTransactions,
     deleteTransaction,
     editTransaction,
     mode: transactionState.mode,
@@ -109,9 +115,10 @@ type TransactionsContextType = {
   idToEdit: string;
   setIdToEdit: (transactionId: string) => void;
   allTransactions: AllTransactionsType;
-  addTransaction: (transaction: TransactionDetailsType) => void;
+  setTransactions: (transactions: AllTransactionsType) => void;
+  addTransaction: (id: string, transaction: TransactionDetailsType) => void;
   deleteTransaction: (transactionId: string) => void;
-  editTransaction: (transaction: TransactionDetailsType) => void;
+  editTransaction: (id: string, transaction: TransactionDetailsType) => void;
   mode: "edit" | "add";
   setMode: (mode: "edit" | "add") => void;
 };
@@ -124,7 +131,14 @@ type State = {
 
 type Action =
   | { type: "SET_TO_EDIT"; payload: string }
-  | { type: "ADD_TRANSACTION"; payload: TransactionDetailsType }
+  | {
+      type: "ADD_TRANSACTION";
+      payload: { id: string; transaction: TransactionDetailsType };
+    }
   | { type: "DELETE_TRANSACTION"; payload: string }
-  | { type: "EDIT_TRANSACTION"; payload: TransactionDetailsType }
-  | { type: "SET_MODE"; payload: "edit" | "add" };
+  | {
+      type: "EDIT_TRANSACTION";
+      payload: { id: string; transaction: TransactionDetailsType };
+    }
+  | { type: "SET_MODE"; payload: "edit" | "add" }
+  | { type: "SET_TRANSACTIONS"; payload: AllTransactionsType };

@@ -17,10 +17,9 @@ export type AllTransactionsType = {
 };
 
 export type TransactionDetailsType = {
-  id: string;
   category: ExpenseCategories;
   name: string;
   amount: number;
-  date: Date;
+  date: string;
   type: TransactionType;
 };

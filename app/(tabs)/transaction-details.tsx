@@ -13,7 +13,6 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -28,7 +27,11 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import "react-native-get-random-values";
 import { v4 as uuidv4 } from "uuid";
 import AppInput from "@/components/AppInput";
-import { validate } from "@/utils/utils";
+import { formatDate, validate } from "@/utils/utils";
+import {
+  createTransaction,
+  editTransaction as editTransactionFromFirebase,
+} from "@/utils/axios";
 
 const TRANSACTION_TYPE = {
   EXPENSE: "expense",
@@ -52,7 +55,7 @@ const TransactionDetails = () => {
     name: { value: "", isValid: true },
     amount: { value: "", isValid: true },
     type: { value: "expense", isValid: true },
-    date: { value: new Date(), isValid: true },
+    date: { value: "", isValid: true },
   };
 
   const [transaction, setTransaction] = useState(defaultTransaction);
@@ -77,7 +80,7 @@ const TransactionDetails = () => {
   const handleInputChange = useCallback(
     (
       field: keyof TransactionDetailsType,
-      value: string | number | ExpenseCategories | TransactionType | Date
+      value: string | number | ExpenseCategories | TransactionType
     ) => {
       setTransaction((prev) => ({
         ...prev,
@@ -92,9 +95,8 @@ const TransactionDetails = () => {
     setTransaction(defaultTransaction);
   }, []);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const newTransaction = {
-      id: mode === "edit" ? idToEdit : uuidv4(),
       category: transaction.category.value as ExpenseCategories,
       name: transaction.name.value,
       amount: Number(transaction.amount.value.replace(/,/g, "")),
@@ -105,7 +107,7 @@ const TransactionDetails = () => {
     const amountIsValid =
       newTransaction.amount > 0 && !isNaN(newTransaction.amount);
     const nameIsValid = newTransaction.name.trim().length > 0;
-    const dateIsValid = newTransaction.date instanceof Date;
+    const dateIsValid = newTransaction.date.length > 0;
     const categoryIsValid = newTransaction.category.trim().length > 0;
 
     if (!amountIsValid || !nameIsValid || !dateIsValid || !categoryIsValid) {
@@ -120,9 +122,11 @@ const TransactionDetails = () => {
     }
 
     if (mode === "edit") {
-      editTransaction(newTransaction);
+      await editTransactionFromFirebase(idToEdit, newTransaction);
+      editTransaction(idToEdit, newTransaction);
     } else {
-      addTransaction(newTransaction);
+      const id = await createTransaction(newTransaction);
+      addTransaction(id, newTransaction);
     }
     resetForm();
 
@@ -272,20 +276,20 @@ const TransactionDetails = () => {
                     : { color: "grey" }
                 }
               >
-                {transaction.date
-                  ? transaction.date.value.toDateString()
+                {transaction?.date?.value
+                  ? formatDate(transaction.date.value)
                   : "e.g., YYYY-MM-DD"}
               </AppText>
             </TouchableOpacity>
             {show && (
               <DateTimePicker
                 testID="dateTimePicker"
-                value={new Date()}
+                value={new Date(transaction.date.value)}
                 mode="date"
                 display="default"
                 onChange={(event, selectedDate) => {
-                  const currentDate = selectedDate || new Date();
-                  handleInputChange("date", currentDate);
+                  const currentDate = selectedDate;
+                  handleInputChange("date", currentDate?.toISOString());
                   setShow(false);
                 }}
               />

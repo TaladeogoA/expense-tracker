@@ -3,7 +3,7 @@ import Transaction from "@/components/Transaction";
 import { Colors, IconSizes } from "@/utils/constants";
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   FlatList,
   Image,
@@ -15,9 +15,29 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TransactionsContext } from "../context/transactionsContext";
 import { formatter } from "@/utils/utils";
+import { fetchTransactions } from "@/utils/axios";
+import moment from "moment";
 
 export default function RecentScreen() {
-  const { allTransactions } = useContext(TransactionsContext);
+  const { setTransactions: setContextTransactions, allTransactions } =
+    useContext(TransactionsContext);
+
+  useEffect(() => {
+    async function fetchData() {
+      const result = await fetchTransactions();
+      setContextTransactions(result);
+    }
+    fetchData();
+  }, []);
+
+  const today = moment();
+  const last7Days = Object.entries(allTransactions).filter(
+    ([id, transaction]) =>
+      moment(transaction.date).isBetween(
+        today.clone().subtract(7, "days"),
+        today
+      )
+  );
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
@@ -63,7 +83,7 @@ export default function RecentScreen() {
                   justifyContent: "center",
                 }}
               >
-                <AppText style={styles.cardHeading}>Income</AppText>
+                <AppText style={styles.cardHeading}>Total income</AppText>
                 <AppText
                   style={[
                     styles.cardAmount,
@@ -104,7 +124,7 @@ export default function RecentScreen() {
                   justifyContent: "center",
                 }}
               >
-                <AppText style={styles.cardHeading}>Expenses</AppText>
+                <AppText style={styles.cardHeading}>Total expenses</AppText>
                 <AppText
                   style={[
                     styles.cardAmount,
@@ -169,18 +189,22 @@ export default function RecentScreen() {
             </Link>
           </View>
           <FlatList
-            data={Object.values(allTransactions)}
-            renderItem={({ item }) => (
-              <Transaction
-                id={item.id}
-                category={item.category}
-                name={item.name}
-                amount={item.amount}
-                date={item.date}
-                type={item.type}
-              />
-            )}
-            keyExtractor={(item, index) => index.toString()}
+            data={Object.entries(last7Days)}
+            renderItem={({ item }) => {
+              const [id, transaction] = item[1];
+
+              return (
+                <Transaction
+                  id={id}
+                  name={transaction.name}
+                  amount={transaction.amount}
+                  type={transaction.type}
+                  category={transaction.category}
+                  date={transaction.date}
+                />
+              );
+            }}
+            keyExtractor={(item) => item[0]}
             ItemSeparatorComponent={() => (
               <View style={{ height: 1, backgroundColor: Colors.lightGray }} />
             )}

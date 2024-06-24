@@ -11,7 +11,7 @@ export const formatter = new Intl.NumberFormat("en-NG", {
 
 export const validate = (
   field: keyof TransactionDetailsType,
-  value: string | number | ExpenseCategories | TransactionType | Date
+  value: string | number | ExpenseCategories | TransactionType
 ) => {
   switch (field) {
     case "name":
@@ -19,7 +19,7 @@ export const validate = (
     case "amount":
       return typeof value === "number" && value > 0;
     case "date":
-      return value instanceof Date && !isNaN(value.getTime());
+      return value.toString().trim().length > 0;
     case "category":
       return value.toString().trim().length > 0;
     case "type":
@@ -28,3 +28,10 @@ export const validate = (
       return true;
   }
 };
+
+export function formatDate(isoDateString: string) {
+  const date = new Date(isoDateString);
+  return `${date.toLocaleString("default", {
+    month: "short",
+  })} ${date.getDate()} ${date.getFullYear()}`;
+}

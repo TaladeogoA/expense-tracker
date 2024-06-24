@@ -7,14 +7,10 @@ import {
 } from "react-native";
 import TransactionIcon from "./TransactionIcon";
 import { FC, useContext } from "react";
-import {
-  ExpenseCategories,
-  TransactionDetailsType,
-  TransactionType,
-} from "@/utils/types";
+import { TransactionDetailsType } from "@/utils/types";
 import { Colors, IconSizes } from "@/utils/constants";
 import AppText from "./AppText";
-import { Link, router } from "expo-router";
+import { router } from "expo-router";
 import { TransactionsContext } from "@/app/context/transactionsContext";
 import {
   Menu,
@@ -23,16 +19,17 @@ import {
   MenuTrigger,
 } from "react-native-popup-menu";
 import { Ionicons } from "@expo/vector-icons";
-import { formatter } from "@/utils/utils";
+import { formatDate, formatter } from "@/utils/utils";
+import { deleteTransaction as deleteTransactionFromFirebase } from "@/utils/axios";
 
 const screenWidth = Dimensions.get("window").width;
 const maxChars = Math.floor(screenWidth / 23);
 
-const Transaction: FC<TransactionDetailsType> = ({
+const Transaction: FC<TransactionDetailsType & { id: string }> = ({
   id,
-  category,
   name,
   amount,
+  category,
   date,
   type,
 }) => {
@@ -45,7 +42,8 @@ const Transaction: FC<TransactionDetailsType> = ({
     router.push("/transaction-details");
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
+    await deleteTransactionFromFirebase(id);
     deleteTransaction(id);
   };
 
@@ -63,7 +61,9 @@ const Transaction: FC<TransactionDetailsType> = ({
         </View>
         <View style={styles.detailsText}>
           <Text style={styles.nameText}>{displayText}</Text>
-          <AppText style={styles.dateText}>{date.toDateString()}</AppText>
+          <AppText style={styles.dateText}>
+            {formatDate(date.toString())}
+          </AppText>
         </View>
         <AppText
           style={[
