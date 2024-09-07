@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import { useContext, useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   Image,
   ScrollView,
@@ -21,10 +22,12 @@ import moment from "moment";
 export default function RecentScreen() {
   const { setTransactions: setContextTransactions, allTransactions } =
     useContext(TransactionsContext);
+  const [isTransactionsLoading, setIsTransactionsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       const result = await fetchTransactions();
+      setIsTransactionsLoading(false);
       setContextTransactions(result);
     }
     fetchData();
@@ -188,46 +191,60 @@ export default function RecentScreen() {
               </View>
             </Link>
           </View>
-          <FlatList
-            data={Object.entries(last7Days)}
-            renderItem={({ item }) => {
-              const [id, transaction] = item[1];
+          {isTransactionsLoading ? (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "flex-start",
+                alignItems: "center",
+              }}
+            >
+              <ActivityIndicator size="large" color="black" />
+            </View>
+          ) : (
+            <FlatList
+              data={Object.entries(last7Days)}
+              renderItem={({ item }) => {
+                const [id, transaction] = item[1];
 
-              return (
-                <Transaction
-                  id={id}
-                  name={transaction.name}
-                  amount={transaction.amount}
-                  type={transaction.type}
-                  category={transaction.category}
-                  date={transaction.date}
+                return (
+                  <Transaction
+                    id={id}
+                    name={transaction.name}
+                    amount={transaction.amount}
+                    type={transaction.type}
+                    category={transaction.category}
+                    date={transaction.date}
+                  />
+                );
+              }}
+              keyExtractor={(item) => item[0]}
+              ItemSeparatorComponent={() => (
+                <View
+                  style={{ height: 1, backgroundColor: Colors.lightGray }}
                 />
-              );
-            }}
-            keyExtractor={(item) => item[0]}
-            ItemSeparatorComponent={() => (
-              <View style={{ height: 1, backgroundColor: Colors.lightGray }} />
-            )}
-            showsVerticalScrollIndicator={false}
-            ListEmptyComponent={() => (
-              <View
-                style={{
-                  flex: 1,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  marginTop: 50,
-                }}
-              >
-                <AppText
+              )}
+              showsVerticalScrollIndicator={false}
+              ListEmptyComponent={() => (
+                <View
                   style={{
-                    color: Colors.grayText,
+                    flex: 1,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginTop: 50,
                   }}
                 >
-                  No recent transactions
-                </AppText>
-              </View>
-            )}
-          />
+                  <AppText
+                    style={{
+                      color: Colors.grayText,
+                    }}
+                  >
+                    No recent transactions
+                  </AppText>
+                </View>
+              )}
+            />
+          )}
         </View>
       </View>
     </SafeAreaView>

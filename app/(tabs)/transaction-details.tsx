@@ -13,6 +13,7 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
+  Text,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -284,13 +285,14 @@ const TransactionDetails = () => {
             {show && (
               <DateTimePicker
                 testID="dateTimePicker"
-                value={new Date(transaction.date.value)}
+                value={new Date()}
                 mode="date"
                 display="default"
                 onChange={(event, selectedDate) => {
-                  const currentDate = selectedDate;
-                  handleInputChange("date", currentDate?.toISOString());
-                  setShow(false);
+                  if (selectedDate) {
+                    handleInputChange("date", selectedDate?.toISOString());
+                    setShow(false);
+                  }
                 }}
               />
             )}
